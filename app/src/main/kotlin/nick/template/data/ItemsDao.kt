@@ -27,7 +27,7 @@ class SqliteItemsDao @Inject constructor(
 ) : ItemsDao {
     private val notifications = MutableSharedFlow<Unit>()
     private val migrations = mapOf(
-        Migration(oldVersion = 1, newVersion = 2) to Sql(
+        Migration(from = 1, to = 2) to Sql(
             """
             ALTER TABLE $Table
             ADD COLUMN ${Column.Rating} INTEGER DEFAULT 0

@@ -18,8 +18,8 @@ interface Dao {
 }
 
 data class Migration(
-    val oldVersion: Int,
-    val newVersion: Int
+    val from: Int,
+    val to: Int
 )
 
 @JvmInline
