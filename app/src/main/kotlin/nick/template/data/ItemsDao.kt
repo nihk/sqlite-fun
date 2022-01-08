@@ -143,10 +143,10 @@ class SqliteItemsDao @Inject constructor(
     }
 
     companion object {
-        const val Table = "items"
+        private const val Table = "items"
         private const val WhereItemId = "${Column.Id} = ?"
 
-        object Column {
+        private object Column {
             const val Id = "id"
             const val Name = "name"
             const val Description = "description"
