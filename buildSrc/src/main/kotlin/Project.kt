@@ -1,18 +1,25 @@
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+import com.android.build.gradle.internal.dsl.BuildType
+import java.io.File
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun Project.androidAppConfig(extras: (BaseAppModuleExtension.() -> Unit) = {}) = androidConfig<BaseAppModuleExtension>().run {
     defaultConfig {
-        buildToolsVersion(BuildVersion.buildTools)
+        buildToolsVersion = BuildVersion.buildTools
         multiDexEnabled = true
+    }
+
+    buildTypes {
+        listOf(getByName(BuildTypes.DebugMinified), getByName(BuildTypes.Release)).forEach { buildType ->
+            buildType.isShrinkResources = true
+        }
     }
 
     buildFeatures {
@@ -31,22 +38,26 @@ fun Project.androidLibraryConfig(extras: (LibraryExtension.() -> Unit) = {}) = a
 }
 
 private fun <T : BaseExtension> Project.androidConfig() = android<T>().apply {
+    repositories.addProjectDefaults()
+
     compileSdkVersion(BuildVersion.compileSdk)
 
     defaultConfig {
-        minSdkVersion(BuildVersion.minSdk)
-        targetSdkVersion(BuildVersion.targetSdk)
+        minSdk = BuildVersion.minSdk
+        targetSdk = BuildVersion.targetSdk
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        getByName("debug") {
+        getByName(BuildTypes.Debug) {
             isMinifyEnabled = false
         }
-        getByName("release") {
-            isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-            consumerProguardFiles("consumer-rules.pro")
+        create(BuildTypes.DebugMinified) {
+            signingConfig  = signingConfigs.getByName(BuildTypes.Debug)
+            minify(defaultProguardFile())
+        }
+        getByName(BuildTypes.Release) {
+            minify(defaultProguardFile())
         }
     }
 
@@ -62,21 +73,24 @@ private fun <T : BaseExtension> Project.androidConfig() = android<T>().apply {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_1_8.toString()
-            useIR = true
             freeCompilerArgs = listOf(
                 "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi"
             )
         }
     }
 
-    sourceSets {
-        getByName("main").java.srcDir("src/main/kotlin")
-        getByName("test").java.srcDir("src/test/kotlin")
-        getByName("androidTest").java.srcDir("src/androidTest/kotlin")
-    }
-
     testOptions {
         animationsDisabled = true
+    }
+
+    packagingOptions {
+        setExcludes(
+            setOf(
+                "LICENSE.txt",
+                "NOTICE.txt",
+                "META-INF/**",
+            )
+        )
     }
 }.also {
     defaultDependencies()
@@ -88,15 +102,36 @@ private fun <T : BaseExtension> Project.android(): T {
 }
 
 fun Project.jvmConfig() {
-    val sourceSets = extensions.getByName("sourceSets") as SourceSetContainer
-    sourceSets["main"].java.srcDir("src/main/kotlin")
-
     defaultDependencies()
 }
 
 private fun Project.defaultDependencies() {
     dependencies {
-        "implementation"(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
         "implementation"(Dependencies.Kotlin.stdlib)
     }
+}
+
+private fun BaseExtension.defaultProguardFile(): File {
+    return getDefaultProguardFile("proguard-android.txt")
+}
+
+private fun BuildType.minify(defaultProguardFile: File) {
+    isMinifyEnabled = true
+    proguardFiles(defaultProguardFile, "proguard-rules.pro")
+    consumerProguardFiles("consumer-rules.pro")
+}
+
+fun BaseExtension.addSharedTestDirectory(name: String) {
+    sourceSets {
+        listOf("test", "androidTest").forEach { sourceSet ->
+            getByName(sourceSet).apply {
+                resources.srcDir("src/$name/resources")
+                java.srcDir("src/$name/kotlin")
+            }
+        }
+    }
+}
+
+fun Project.withKtlint() {
+    apply(plugin = Plugins.ktlintGradle)
 }

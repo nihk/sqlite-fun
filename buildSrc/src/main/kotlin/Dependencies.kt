@@ -8,7 +8,6 @@ object Dependencies {
     const val coil = "io.coil-kt:coil:${Versions.coil}"
     const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.constraintLayout}"
     const val coreKtx = "androidx.core:core-ktx:${Versions.coreKtx}"
-    const val documentFile = "androidx.documentfile:documentfile:${Versions.documentFile}"
     const val dataStore = "androidx.datastore:datastore:${Versions.dataStore}"
     const val hamcrest = "org.hamcrest:hamcrest-all:${Versions.hamcrest}"
     const val inject = "javax.inject:javax.inject:${Versions.inject}"
@@ -66,10 +65,10 @@ object Dependencies {
         const val compiler = "com.google.dagger:dagger-compiler:${Versions.dagger}"
 
         object Hilt {
-            const val plugin = "com.google.dagger:hilt-android-gradle-plugin:${Versions.hilt}"
-            const val runtime = "com.google.dagger:hilt-android:${Versions.hilt}"
-            const val testing = "com.google.dagger:hilt-android-testing:${Versions.hilt}"
-            const val compiler = "com.google.dagger:hilt-android-compiler:${Versions.hilt}"
+            const val plugin = "com.google.dagger:hilt-android-gradle-plugin:${Versions.dagger}"
+            const val runtime = "com.google.dagger:hilt-android:${Versions.dagger}"
+            const val testing = "com.google.dagger:hilt-android-testing:${Versions.dagger}"
+            const val compiler = "com.google.dagger:hilt-compiler:${Versions.dagger}"
 
             object Jetpack {
                 const val lifecycleViewModel = "androidx.hilt:hilt-lifecycle-viewmodel:${Versions.hiltJetpack}"
@@ -109,17 +108,11 @@ object Dependencies {
     }
 
     object Lifecycle {
-        const val runtime = "androidx.lifecycle:lifecycle-runtime:${Versions.lifecycle}"
+        const val runtime = "androidx.lifecycle:lifecycle-runtime-ktx:${Versions.lifecycle}"
         const val java8 = "androidx.lifecycle:lifecycle-common-java8:${Versions.lifecycle}"
         const val compiler = "androidx.lifecycle:lifecycle-compiler:${Versions.lifecycle}"
         const val viewModel = "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifecycle}"
         const val liveData = "androidx.lifecycle:lifecycle-livedata-ktx:${Versions.lifecycle}"
-        const val process = "androidx.lifecycle:lifecycle-process:${Versions.lifecycle}"
-    }
-
-    object Mockito {
-        const val core = "org.mockito:mockito-core:${Versions.mockito}"
-        const val android = "org.mockito:mockito-android:${Versions.mockito}"
     }
 
     object Moshi {
@@ -162,5 +155,6 @@ object Dependencies {
     object Work {
         const val runtime = "androidx.work:work-runtime-ktx:${Versions.work}"
         const val testing = "androidx.work:work-testing:${Versions.work}"
+        const val firebase = "androidx.work:work-firebase:${Versions.work}"
     }
 }

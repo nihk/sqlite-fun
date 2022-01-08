@@ -12,11 +12,6 @@ plugins {
     `ktlint-gradle`
 }
 
-allprojects {
-    repositories.addProjectDefaults()
-    apply(plugin = Plugins.ktlintGradle)
-}
-
 task<Delete>("clean") {
     delete(rootProject.buildDir)
 }

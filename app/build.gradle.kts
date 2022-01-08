@@ -33,7 +33,6 @@ dependencies {
     implementation(Dependencies.OkHttp.loggingInterceptor)
     implementation(Dependencies.multidex)
     implementation(Dependencies.coil)
-    implementation(Dependencies.documentFile)
     implementation(Dependencies.Work.runtime)
     implementation(Dependencies.Sqlite.runtime)
     implementation(Dependencies.Sqlite.framework)
