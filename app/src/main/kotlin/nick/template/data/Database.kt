@@ -36,13 +36,15 @@ class DatabaseHolder @Inject constructor(
 
 @Singleton
 class AppSQLiteOpenHelper @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext context: Context,
     // Lazy to avoid cyclic reference -- DAOs own an instance of the database and
     // SQLiteOpenHelper.writeableDatabase can call onCreate()/onUpgrade().
-    private val daos: Lazy<Set<@JvmSuppressWildcards Dao>>
+    daos: Lazy<Set<@JvmSuppressWildcards Dao>>
 ) : SQLiteOpenHelper(context, "app_database.db", null, 2) {
+    private val daos: Set<Dao> by lazy(daos::get)
+
     override fun onCreate(db: SQLiteDatabase) = db.transaction {
-        daos.get().forEach { dao ->
+        daos.forEach { dao ->
             val sql = dao.createTable()
             db.execSQL(sql.value)
         }
@@ -52,7 +54,7 @@ class AppSQLiteOpenHelper @Inject constructor(
         var from = oldVersion
         while (from < newVersion) {
             val to = from + 1
-            daos.get().forEach { dao ->
+            daos.forEach { dao ->
                 val sql = dao.migrate(Migration(from, to)) ?: return@forEach
                 db.execSQL(sql.value)
             }
