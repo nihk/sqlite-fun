@@ -13,13 +13,16 @@ import nick.template.di.IoContext
 
 interface DatabaseLifecycleDelegate {
     fun createTable(): String
-    fun migrate(migration: Migration): String?
+    fun migrate(migration: Migration): Sql?
 }
 
 data class Migration(
     val oldVersion: Int,
     val newVersion: Int
 )
+
+@JvmInline
+value class Sql(val value: String)
 
 class DatabaseHolder @Inject constructor(
     private val helper: SQLiteOpenHelper,
@@ -47,7 +50,7 @@ class SqliteAppDatabase @Inject constructor(
         delegates.get().forEach { delegate ->
             val sql = delegate.migrate(Migration(oldVersion, newVersion))
                 ?: return@forEach
-            db.execSQL(sql)
+            db.execSQL(sql.value)
         }
     }
 }

@@ -27,10 +27,12 @@ class SqliteItemsDao @Inject constructor(
     DatabaseLifecycleDelegate {
     private val notifications = MutableSharedFlow<Unit>()
     private val migrations = mapOf(
-        Migration(oldVersion = 1, newVersion = 2) to """
+        Migration(oldVersion = 1, newVersion = 2) to Sql(
+            """
             ALTER TABLE $Table
             ADD COLUMN ${Column.Rating} INTEGER DEFAULT 0
         """.trimIndent()
+        )
     )
 
     override fun createTable(): String {
@@ -44,7 +46,7 @@ class SqliteItemsDao @Inject constructor(
         """.trimIndent()
     }
 
-    override fun migrate(migration: Migration): String? {
+    override fun migrate(migration: Migration): Sql? {
         return migrations[migration]
     }
 
