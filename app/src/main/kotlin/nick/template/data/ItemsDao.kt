@@ -79,16 +79,16 @@ class SqliteItemsDao @Inject constructor(
     }
 
     private fun Cursor.toItems(): List<Item> {
+        val idColumnIndex = getColumnIndexOrThrow(Column.Id)
+        val nameColumnIndex = getColumnIndexOrThrow(Column.Name)
+        val descriptionColumnIndex = getColumnIndexOrThrow(Column.Description)
+        val ratingColumnIndex = getColumnIndexOrThrow(Column.Rating)
         return map {
-            val id = getLong(getColumnIndexOrThrow(Column.Id))
-            val name = getString(getColumnIndexOrThrow(Column.Name))
-            val description = getString(getColumnIndexOrThrow(Column.Description))
-            val rating = getInt(getColumnIndexOrThrow(Column.Rating))
             Item(
-                id = id,
-                name = name,
-                description = description,
-                rating = rating
+                id = getLong(idColumnIndex),
+                name = getString(nameColumnIndex),
+                description = getString(descriptionColumnIndex),
+                rating = getInt(ratingColumnIndex)
             )
         }
     }
