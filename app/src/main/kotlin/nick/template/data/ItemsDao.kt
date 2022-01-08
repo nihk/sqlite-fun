@@ -2,6 +2,7 @@ package nick.template.data
 
 import android.content.ContentValues
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import androidx.core.content.contentValuesOf
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -57,14 +58,14 @@ class SqliteItemsDao @Inject constructor(
             SELECT *
             FROM $Table
         """.trimIndent()
-        return withContext(ioContext) {
-            holder.awaitDatabase().rawQuery(sql, null).use { cursor -> cursor.toItems() }
+        return withDb {
+            rawQuery(sql, null).use { cursor -> cursor.toItems() }
         }
     }
 
     override suspend fun insert(item: Item) = notify {
-        withContext(ioContext) {
-            holder.awaitDatabase().insert(Table, null, item.toContentValues())
+        withDb {
+            insert(Table, null, item.toContentValues())
         }
     }
 
@@ -73,8 +74,14 @@ class SqliteItemsDao @Inject constructor(
             DELETE
             FROM $Table
         """.trimIndent()
-        withContext(ioContext) {
-            holder.awaitDatabase().execSQL(sql)
+        withDb {
+            execSQL(sql)
+        }
+    }
+
+    private suspend fun <T> withDb(block: SQLiteDatabase.() -> T): T {
+        return withContext(ioContext) {
+            holder.awaitDatabase().block()
         }
     }
 
