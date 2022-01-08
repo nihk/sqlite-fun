@@ -1,5 +1,6 @@
 package nick.template.di
 
+import android.database.sqlite.SQLiteOpenHelper
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -10,11 +11,12 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import nick.template.data.DatabaseLifecycleDelegate
 import nick.template.data.ItemsDao
+import nick.template.data.SqliteAppDatabase
 import nick.template.data.SqliteItemsDao
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class AppModule {
+interface AppModule {
 
     companion object {
         @Provides
@@ -23,9 +25,12 @@ abstract class AppModule {
     }
 
     @Binds
-    abstract fun itemsDao(sqliteItemsDao: SqliteItemsDao): ItemsDao
+    fun sqliteOpenHelper(database: SqliteAppDatabase): SQLiteOpenHelper
+
+    @Binds
+    fun itemsDao(sqliteItemsDao: SqliteItemsDao): ItemsDao
 
     @Binds
     @IntoSet
-    abstract fun itemsDatabaseLifecycleDelegate(sqliteItemsDao: SqliteItemsDao): DatabaseLifecycleDelegate
+    fun itemsDatabaseLifecycleDelegate(sqliteItemsDao: SqliteItemsDao): DatabaseLifecycleDelegate
 }

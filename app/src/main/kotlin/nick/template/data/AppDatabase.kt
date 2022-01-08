@@ -22,11 +22,11 @@ data class Migration(
 )
 
 class DatabaseHolder @Inject constructor(
-    private val sqliteAppDatabase: SqliteAppDatabase,
+    private val helper: SQLiteOpenHelper,
     @IoContext private val ioContext: CoroutineContext
 ) {
     suspend fun awaitDatabase(): SQLiteDatabase = withContext(ioContext) {
-        sqliteAppDatabase.writableDatabase
+        helper.writableDatabase
     }
 }
 
