@@ -3,6 +3,7 @@ package nick.template.data
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import androidx.core.database.sqlite.transaction
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -40,20 +41,19 @@ class AppSQLiteOpenHelper @Inject constructor(
     // SQLiteOpenHelper.writeableDatabase can call onCreate()/onUpgrade().
     private val daos: Lazy<Set<@JvmSuppressWildcards Dao>>
 ) : SQLiteOpenHelper(context, "app_database.db", null, 2) {
-    override fun onCreate(db: SQLiteDatabase) {
+    override fun onCreate(db: SQLiteDatabase) = db.transaction {
         daos.get().forEach { dao ->
             val sql = dao.createTable()
             db.execSQL(sql.value)
         }
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = db.transaction {
         var from = oldVersion
         while (from < newVersion) {
             val to = from + 1
             daos.get().forEach { dao ->
-                val sql = dao.migrate(Migration(from, to))
-                    ?: return@forEach
+                val sql = dao.migrate(Migration(from, to)) ?: return@forEach
                 db.execSQL(sql.value)
             }
             ++from
