@@ -36,7 +36,7 @@ class DatabaseHolder @Inject constructor(
 @Singleton
 class SqliteAppDatabase @Inject constructor(
     @ApplicationContext private val context: Context,
-    // Lazy to avoid cyclic reference -- DAOs owns an instance of the database.
+    // Lazy to avoid cyclic reference -- DAOs own an instance of the database.
     private val delegates: Lazy<Set<@JvmSuppressWildcards DatabaseLifecycleDelegate>>
 ) : SQLiteOpenHelper(context, "app_database.db", null, 2) {
     override fun onCreate(db: SQLiteDatabase) {
