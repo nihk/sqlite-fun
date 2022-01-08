@@ -80,7 +80,7 @@ class SqliteItemsDao @Inject constructor(
             update(
                 Table,
                 item.toContentValues(),
-                whereId(),
+                WhereItemId,
                 arrayOf(item.id.toString())
             )
         }
@@ -90,7 +90,7 @@ class SqliteItemsDao @Inject constructor(
         withDb {
             delete(
                 Table,
-                whereId(),
+                WhereItemId,
                 arrayOf(item.id.toString())
             )
         }
@@ -105,12 +105,6 @@ class SqliteItemsDao @Inject constructor(
         withDb {
             execSQL(sql)
         }
-    }
-
-    private fun whereId(): String {
-        return """
-            ${Column.Id} = ?
-        """.trimIndent()
     }
 
     private suspend fun <T> withDb(block: SQLiteDatabase.() -> T): T {
@@ -150,6 +144,7 @@ class SqliteItemsDao @Inject constructor(
 
     companion object {
         const val Table = "items"
+        private const val WhereItemId = "${Column.Id} = ?"
 
         object Column {
             const val Id = "id"
