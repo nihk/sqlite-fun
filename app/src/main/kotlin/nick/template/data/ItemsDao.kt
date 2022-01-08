@@ -2,6 +2,7 @@ package nick.template.data
 
 import android.content.ContentValues
 import android.database.Cursor
+import androidx.core.content.contentValuesOf
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -47,8 +48,8 @@ class SqliteItemsDao @Inject constructor(
 
     override fun items(): Flow<List<Item>> {
         return notifications
+            .onStart { emit(Unit) }
             .map { queryItems() }
-            .onStart { emit(queryItems()) }
     }
 
     private suspend fun queryItems(): List<Item> {
@@ -93,12 +94,12 @@ class SqliteItemsDao @Inject constructor(
     }
 
     private fun Item.toContentValues(): ContentValues {
-        return ContentValues().apply {
+        return contentValuesOf(
             /** No need to put [Column.Id] because the table auto-increments that value. **/
-            put(Column.Name, name)
-            put(Column.Description, description)
-            put(Column.Rating, rating)
-        }
+            Column.Name to name,
+            Column.Description to description,
+            Column.Rating to rating,
+        )
     }
 
     private suspend fun notify(block: suspend () -> Unit) {
