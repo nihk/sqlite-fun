@@ -16,6 +16,7 @@ import nick.template.di.IoContext
 interface ItemsDao {
     fun items(): Flow<List<Item>>
     suspend fun insert(item: Item)
+    suspend fun update(item: Item)
     suspend fun nuke()
 }
 
@@ -58,6 +59,7 @@ class SqliteItemsDao @Inject constructor(
             SELECT *
             FROM $Table
         """.trimIndent()
+
         return withDb {
             rawQuery(sql, null).use { cursor -> cursor.toItems() }
         }
@@ -69,11 +71,27 @@ class SqliteItemsDao @Inject constructor(
         }
     }
 
+    override suspend fun update(item: Item) = notify {
+        val where = """
+            ${Column.Id} = ?
+        """.trimIndent()
+
+        withDb {
+            update(
+                Table,
+                item.toContentValues(),
+                where,
+                arrayOf(item.id.toString())
+            )
+        }
+    }
+
     override suspend fun nuke() = notify {
         val sql = """
             DELETE
             FROM $Table
         """.trimIndent()
+
         withDb {
             execSQL(sql)
         }

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">sqlite-fun</string>
+    <string name="item_id">ID: %d</string>
+    <string name="item_rating">Rating: %d</string>
 </resources>

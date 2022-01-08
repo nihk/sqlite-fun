@@ -23,6 +23,12 @@ class MainViewModel(private val itemsDao: ItemsDao) : ViewModel() {
         }
     }
 
+    fun update(item: Item) {
+        viewModelScope.launch {
+            itemsDao.update(item)
+        }
+    }
+
     fun nuke() {
         viewModelScope.launch {
             itemsDao.nuke()

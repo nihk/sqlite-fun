@@ -21,7 +21,10 @@ class MainFragment @Inject constructor(
         val binding = MainFragmentBinding.bind(view)
         val viewModel: MainViewModel by viewModels { vmFactory.create(this) }
 
-        val adapter = ItemAdapter()
+        val clicks: (Item) -> Unit = { item ->
+            viewModel.update(item)
+        }
+        val adapter = ItemAdapter(clicks)
         binding.recyclerView.adapter = adapter
         binding.add.setOnClickListener {
             val item = Item(name = "Legolas", description = "They're taking the hobbits to Isengard!", rating = (0..10).random())
