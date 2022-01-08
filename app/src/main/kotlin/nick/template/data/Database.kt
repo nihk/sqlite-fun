@@ -36,7 +36,8 @@ class DatabaseHolder @Inject constructor(
 @Singleton
 class AppSQLiteOpenHelper @Inject constructor(
     @ApplicationContext private val context: Context,
-    // Lazy to avoid cyclic reference -- DAOs own an instance of the database.
+    // Lazy to avoid cyclic reference -- DAOs own an instance of the database and
+    // SQLiteOpenHelper.writeableDatabase can call onCreate()/onUpgrade().
     private val daos: Lazy<Set<@JvmSuppressWildcards Dao>>
 ) : SQLiteOpenHelper(context, "app_database.db", null, 2) {
     override fun onCreate(db: SQLiteDatabase) {
