@@ -24,7 +24,7 @@ class MainFragment @Inject constructor(
         val adapter = ItemAdapter()
         binding.recyclerView.adapter = adapter
         binding.add.setOnClickListener {
-            val item = Item(name = "Legolas", description = "They're taking the hobbits to Isengard!")
+            val item = Item(name = "Legolas", description = "They're taking the hobbits to Isengard!", rating = (0..10).random())
             viewModel.add(item)
         }
         binding.nuke.setOnClickListener {

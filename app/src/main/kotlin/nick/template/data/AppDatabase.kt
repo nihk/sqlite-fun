@@ -21,7 +21,7 @@ data class Migration(
 class SqliteAppDatabase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val delegates: Set<@JvmSuppressWildcards DatabaseLifecycleDelegate>
-) : SQLiteOpenHelper(context, "app_database.db", null, 1) {
+) : SQLiteOpenHelper(context, "app_database.db", null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
         delegates.forEach { delegate ->

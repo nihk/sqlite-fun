@@ -4,14 +4,14 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.database.sqlite.SQLiteOpenHelper
 import dagger.Lazy
+import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import nick.template.di.IoContext
-import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
 
 interface ItemsDao {
     fun items(): Flow<List<Item>>
@@ -27,15 +27,21 @@ class SqliteItemsDao @Inject constructor(
     DatabaseLifecycleDelegate {
 
     private val database get() = sqliteOpenHelper.get().writableDatabase
-    private val invalidations = MutableSharedFlow<Unit>()
-    private val migrations = mapOf<Migration, String>()
+    private val notifications = MutableSharedFlow<Unit>()
+    private val migrations = mapOf(
+        Migration(oldVersion = 1, newVersion = 2) to """
+            ALTER TABLE $Table
+            ADD COLUMN ${Column.Rating} INTEGER DEFAULT 0
+        """.trimIndent()
+    )
 
     override fun createTable(): String {
         return """
             CREATE TABLE $Table (
-                ${Columns.Id} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                ${Columns.Name} TEXT NOT NULL,
-                ${Columns.Description} TEXT NOT NULL
+                ${Column.Id} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                ${Column.Name} TEXT NOT NULL,
+                ${Column.Description} TEXT NOT NULL,
+                ${Column.Rating} INTEGER NOT NULL
             )
         """.trimIndent()
     }
@@ -45,7 +51,7 @@ class SqliteItemsDao @Inject constructor(
     }
 
     override fun items(): Flow<List<Item>> {
-        return invalidations
+        return notifications
             .map { queryItems() }
             .onStart { emit(queryItems()) }
     }
@@ -60,13 +66,13 @@ class SqliteItemsDao @Inject constructor(
         }
     }
 
-    override suspend fun insert(item: Item) = invalidateTable {
+    override suspend fun insert(item: Item) = notify {
         withContext(ioContext) {
             database.insert(Table, null, item.toContentValues())
         }
     }
 
-    override suspend fun nuke() = invalidateTable {
+    override suspend fun nuke() = notify {
         val sql = """
             DELETE
             FROM $Table
@@ -77,36 +83,42 @@ class SqliteItemsDao @Inject constructor(
     }
 
     private fun Cursor.toItems(): List<Item> {
-        val items = mutableListOf<Item>()
-        while (moveToNext()) {
-            val id = getLong(getColumnIndexOrThrow(Columns.Id))
-            val name = getString(getColumnIndexOrThrow(Columns.Name))
-            val description = getString(getColumnIndexOrThrow(Columns.Description))
-            items += Item(id, name, description)
+        return map {
+            val id = getLong(getColumnIndexOrThrow(Column.Id))
+            val name = getString(getColumnIndexOrThrow(Column.Name))
+            val description = getString(getColumnIndexOrThrow(Column.Description))
+            val rating = getInt(getColumnIndexOrThrow(Column.Rating))
+            Item(
+                id = id,
+                name = name,
+                description = description,
+                rating = rating
+            )
         }
-        return items
     }
 
     private fun Item.toContentValues(): ContentValues {
         return ContentValues().apply {
-            /** No need to put [Columns.Id] because the table auto-increments that value. **/
-            put(Columns.Name, name)
-            put(Columns.Description, description)
+            /** No need to put [Column.Id] because the table auto-increments that value. **/
+            put(Column.Name, name)
+            put(Column.Description, description)
+            put(Column.Rating, rating)
         }
     }
 
-    private suspend fun invalidateTable(block: suspend () -> Unit) {
+    private suspend fun notify(block: suspend () -> Unit) {
         block()
-        invalidations.emit(Unit)
+        notifications.emit(Unit)
     }
 
     companion object {
         const val Table = "items"
 
-        object Columns {
+        object Column {
             const val Id = "id"
             const val Name = "name"
             const val Description = "description"
+            const val Rating = "rating"
         }
     }
 }

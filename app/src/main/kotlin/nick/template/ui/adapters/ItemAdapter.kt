@@ -28,14 +28,13 @@ object ItemDiffCallback : DiffUtil.ItemCallback<Item>() {
     override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
         return oldItem == newItem
     }
-
 }
 
 class ItemViewHolder(private val binding: ItemBinding) : RecyclerView.ViewHolder(binding.root) {
-
     fun bind(item: Item) {
         binding.id.text = item.id.toString()
         binding.name.text = item.name
         binding.description.text = item.description
+        binding.rating.text = item.rating.toString()
     }
 }
