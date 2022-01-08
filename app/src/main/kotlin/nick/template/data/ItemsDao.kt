@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import nick.template.di.IoContext
 
-interface ItemsDao {
+interface ItemsDao : Dao {
     fun items(): Flow<List<Item>>
     suspend fun insert(item: Item)
     suspend fun update(item: Item)
@@ -23,8 +23,7 @@ interface ItemsDao {
 class SqliteItemsDao @Inject constructor(
     private val holder: DatabaseHolder,
     @IoContext private val ioContext: CoroutineContext
-) : ItemsDao,
-    DatabaseLifecycleDelegate {
+) : ItemsDao {
     private val notifications = MutableSharedFlow<Unit>()
     private val migrations = mapOf(
         Migration(oldVersion = 1, newVersion = 2) to Sql(
@@ -35,8 +34,9 @@ class SqliteItemsDao @Inject constructor(
         )
     )
 
-    override fun createTable(): String {
-        return """
+    override fun createTable(): Sql {
+        return Sql(
+            """
             CREATE TABLE $Table (
                 ${Column.Id} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 ${Column.Name} TEXT NOT NULL,
@@ -44,6 +44,7 @@ class SqliteItemsDao @Inject constructor(
                 ${Column.Rating} INTEGER NOT NULL
             )
         """.trimIndent()
+        )
     }
 
     override fun migrate(migration: Migration): Sql? {

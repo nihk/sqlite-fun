@@ -11,8 +11,8 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.withContext
 import nick.template.di.IoContext
 
-interface DatabaseLifecycleDelegate {
-    fun createTable(): String
+interface Dao {
+    fun createTable(): Sql
     fun migrate(migration: Migration): Sql?
 }
 
@@ -34,21 +34,21 @@ class DatabaseHolder @Inject constructor(
 }
 
 @Singleton
-class SqliteAppDatabase @Inject constructor(
+class AppSQLiteOpenHelper @Inject constructor(
     @ApplicationContext private val context: Context,
     // Lazy to avoid cyclic reference -- DAOs own an instance of the database.
-    private val delegates: Lazy<Set<@JvmSuppressWildcards DatabaseLifecycleDelegate>>
+    private val daos: Lazy<Set<@JvmSuppressWildcards Dao>>
 ) : SQLiteOpenHelper(context, "app_database.db", null, 2) {
     override fun onCreate(db: SQLiteDatabase) {
-        delegates.get().forEach { delegate ->
-            val sql = delegate.createTable()
-            db.execSQL(sql)
+        daos.get().forEach { dao ->
+            val sql = dao.createTable()
+            db.execSQL(sql.value)
         }
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        delegates.get().forEach { delegate ->
-            val sql = delegate.migrate(Migration(oldVersion, newVersion))
+        daos.get().forEach { dao ->
+            val sql = dao.migrate(Migration(oldVersion, newVersion))
                 ?: return@forEach
             db.execSQL(sql.value)
         }

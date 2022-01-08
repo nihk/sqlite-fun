@@ -9,9 +9,9 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
-import nick.template.data.DatabaseLifecycleDelegate
+import nick.template.data.Dao
 import nick.template.data.ItemsDao
-import nick.template.data.SqliteAppDatabase
+import nick.template.data.AppSQLiteOpenHelper
 import nick.template.data.SqliteItemsDao
 
 @Module
@@ -25,12 +25,12 @@ interface AppModule {
     }
 
     @Binds
-    fun sqliteOpenHelper(database: SqliteAppDatabase): SQLiteOpenHelper
+    fun sqliteOpenHelper(helper: AppSQLiteOpenHelper): SQLiteOpenHelper
 
     @Binds
     fun itemsDao(sqliteItemsDao: SqliteItemsDao): ItemsDao
 
     @Binds
     @IntoSet
-    fun itemsDatabaseLifecycleDelegate(sqliteItemsDao: SqliteItemsDao): DatabaseLifecycleDelegate
+    fun itemsDatabaseLifecycleDelegate(sqliteItemsDao: SqliteItemsDao): Dao
 }
