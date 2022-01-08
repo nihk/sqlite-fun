@@ -2,8 +2,6 @@ package nick.template.data
 
 import android.content.ContentValues
 import android.database.Cursor
-import android.database.sqlite.SQLiteOpenHelper
-import dagger.Lazy
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -20,13 +18,10 @@ interface ItemsDao {
 }
 
 class SqliteItemsDao @Inject constructor(
-    // Lazy to avoid cyclic reference -- the app database owns an instance of this DAO.
-    private val sqliteOpenHelper: Lazy<SQLiteOpenHelper>,
+    private val holder: DatabaseHolder,
     @IoContext private val ioContext: CoroutineContext
 ) : ItemsDao,
     DatabaseLifecycleDelegate {
-
-    private val database get() = sqliteOpenHelper.get().writableDatabase
     private val notifications = MutableSharedFlow<Unit>()
     private val migrations = mapOf(
         Migration(oldVersion = 1, newVersion = 2) to """
@@ -62,13 +57,13 @@ class SqliteItemsDao @Inject constructor(
             FROM $Table
         """.trimIndent()
         return withContext(ioContext) {
-            database.rawQuery(sql, null).use { cursor -> cursor.toItems() }
+            holder.awaitDatabase().rawQuery(sql, null).use { cursor -> cursor.toItems() }
         }
     }
 
     override suspend fun insert(item: Item) = notify {
         withContext(ioContext) {
-            database.insert(Table, null, item.toContentValues())
+            holder.awaitDatabase().insert(Table, null, item.toContentValues())
         }
     }
 
@@ -78,7 +73,7 @@ class SqliteItemsDao @Inject constructor(
             FROM $Table
         """.trimIndent()
         withContext(ioContext) {
-            database.execSQL(sql)
+            holder.awaitDatabase().execSQL(sql)
         }
     }
 
