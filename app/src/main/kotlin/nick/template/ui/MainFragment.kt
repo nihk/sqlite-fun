@@ -16,15 +16,21 @@ import javax.inject.Inject
 class MainFragment @Inject constructor(
     private val vmFactory: MainViewModel.Factory
 ) : Fragment(R.layout.main_fragment) {
+    private val viewModel: MainViewModel by viewModels { vmFactory.create(this) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val binding = MainFragmentBinding.bind(view)
-        val viewModel: MainViewModel by viewModels { vmFactory.create(this) }
 
-        val clicks: (Item) -> Unit = { item ->
+        val updates: (Item) -> Unit = { item ->
             viewModel.update(item)
         }
-        val adapter = ItemAdapter(clicks)
+        val deletes: (Item) -> Unit = { item ->
+            viewModel.delete(item)
+        }
+        val adapter = ItemAdapter(
+            updates = updates,
+            deletes = deletes
+        )
         binding.recyclerView.adapter = adapter
         binding.add.setOnClickListener {
             val item = Item(name = "Legolas", description = "They're taking the hobbits to Isengard!", rating = (0..10).random())

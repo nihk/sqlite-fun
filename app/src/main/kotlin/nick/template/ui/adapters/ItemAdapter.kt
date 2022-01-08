@@ -9,11 +9,14 @@ import nick.template.R
 import nick.template.data.Item
 import nick.template.databinding.ItemBinding
 
-class ItemAdapter(private val clicks: (Item) -> Unit) : ListAdapter<Item, ItemViewHolder>(ItemDiffCallback) {
+class ItemAdapter(
+    private val updates: (Item) -> Unit,
+    private val deletes: (Item) -> Unit
+) : ListAdapter<Item, ItemViewHolder>(ItemDiffCallback) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         return LayoutInflater.from(parent.context)
             .let { inflater -> ItemBinding.inflate(inflater, parent, false) }
-            .let { binding -> ItemViewHolder(binding, clicks) }
+            .let { binding -> ItemViewHolder(binding, updates, deletes) }
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
@@ -33,7 +36,8 @@ object ItemDiffCallback : DiffUtil.ItemCallback<Item>() {
 
 class ItemViewHolder(
     private val binding: ItemBinding,
-    private val clicks: (Item) -> Unit
+    private val updates: (Item) -> Unit,
+    private val deletes: (Item) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(item: Item) {
         binding.id.text = binding.root.resources.getString(R.string.item_id, item.id)
@@ -41,7 +45,10 @@ class ItemViewHolder(
         binding.description.text = item.description
         binding.rating.text = binding.root.resources.getString(R.string.item_rating, item.rating)
         binding.root.setOnClickListener {
-            clicks(item.copy(rating = item.rating + 1))
+            updates(item.copy(rating = item.rating + 1))
+        }
+        binding.trash.setOnClickListener {
+            deletes(item)
         }
     }
 }

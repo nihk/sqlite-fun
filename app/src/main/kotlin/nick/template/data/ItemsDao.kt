@@ -17,6 +17,7 @@ interface ItemsDao : Dao {
     fun items(): Flow<List<Item>>
     suspend fun insert(item: Item)
     suspend fun update(item: Item)
+    suspend fun delete(item: Item)
     suspend fun nuke()
 }
 
@@ -75,15 +76,21 @@ class SqliteItemsDao @Inject constructor(
     }
 
     override suspend fun update(item: Item) = notify {
-        val where = """
-            ${Column.Id} = ?
-        """.trimIndent()
-
         withDb {
             update(
                 Table,
                 item.toContentValues(),
-                where,
+                whereId(),
+                arrayOf(item.id.toString())
+            )
+        }
+    }
+
+    override suspend fun delete(item: Item) = notify {
+        withDb {
+            delete(
+                Table,
+                whereId(),
                 arrayOf(item.id.toString())
             )
         }
@@ -98,6 +105,12 @@ class SqliteItemsDao @Inject constructor(
         withDb {
             execSQL(sql)
         }
+    }
+
+    private fun whereId(): String {
+        return """
+            ${Column.Id} = ?
+        """.trimIndent()
     }
 
     private suspend fun <T> withDb(block: SQLiteDatabase.() -> T): T {

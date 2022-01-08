@@ -17,7 +17,6 @@ import nick.template.data.SqliteItemsDao
 @Module
 @InstallIn(SingletonComponent::class)
 interface AppModule {
-
     companion object {
         @Provides
         @IoContext
@@ -32,5 +31,5 @@ interface AppModule {
 
     @Binds
     @IntoSet
-    fun itemsDatabaseLifecycleDelegate(sqliteItemsDao: SqliteItemsDao): Dao
+    fun sqliteItemsDao(sqliteItemsDao: SqliteItemsDao): Dao
 }

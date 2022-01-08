@@ -29,6 +29,12 @@ class MainViewModel(private val itemsDao: ItemsDao) : ViewModel() {
         }
     }
 
+    fun delete(item: Item) {
+        viewModelScope.launch {
+            itemsDao.delete(item)
+        }
+    }
+
     fun nuke() {
         viewModelScope.launch {
             itemsDao.nuke()
