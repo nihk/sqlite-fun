@@ -50,13 +50,15 @@ class AppSQLiteOpenHelper @Inject constructor(
         }
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = db.transaction {
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         var from = oldVersion
         while (from < newVersion) {
             val to = from + 1
-            daos.forEach { dao ->
-                val sql = dao.migrate(Migration(from, to)) ?: return@forEach
-                db.execSQL(sql.value)
+            db.transaction {
+                daos.forEach { dao ->
+                    val sql = dao.migrate(Migration(from, to)) ?: return@forEach
+                    db.execSQL(sql.value)
+                }
             }
             ++from
         }
